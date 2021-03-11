@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "Extension Name",
+  "name": "Сrystalix : Free TON Wallet",
   "version": "0.1",
-  "description": "Some Description",
+  "description": "Free TON Wallet",
   "permissions": [
   ],
   "background": {
@@ -16,11 +16,11 @@
     ]
   }],
   "icons": {
-    "192": "logo192.png"
+    "128": "128.png"
   },
   "browser_action": {
     "default_icon": {
-      "192": "logo192.png"
+      "128": "128.png"
     },
     "default_title": "Popup",
     "default_popup": "popup.html"
