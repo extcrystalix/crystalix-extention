@@ -5,9 +5,11 @@ import {libWeb, libWebSetup} from "@tonclient/lib-web";
 //     binaryURL: "/tonclient_1.5.3.wasm",
 // });
 
-function App() {
-    TonClient.useBinaryLibrary(libWeb);
-    useEffect(() => {
-    alert(1)
-    });
-}
+
+chrome.browserAction.setBadgeBackgroundColor({ color: [255, 0, 0, 255] });
+chrome.browserAction.setBadgeText ( { text: "1" } );
+
+chrome.runtime.onStartup.addListener(async () => {
+    chrome.browserAction.setBadgeBackgroundColor({ color: [255, 0, 0, 255] });
+    chrome.browserAction.setBadgeText ( { text: "loading" } );
+});

@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
-import './App.css'
-import logo from './../../asset/48.png';
+import '../Popup/App.css'
+import logo from '../../asset/48.png';
 import {Button, Divider, Avatar} from '@material-ui/core';
 import {makeStyles} from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
@@ -82,20 +82,12 @@ export default function Wallet() {
     const classes = useStyles();
 
 
-
-
-    return [<AppBar position="static" className={classes.headerAcc}>
+    return [<AppBar position="static" color="default">
         <Toolbar>
             <Typography variant="h6" noWrap className={classes.title}>
                 Account 1
 
             </Typography>
-            <Typography variant={"subtitle2"} className={classes.title2}>
-                0:c6d9...a69
-            </Typography>
-            <IconButton edge="end" className={classes.menuButton} color="inherit" aria-label="menu">
-                <MoreVertIcon/>
-            </IconButton>
         </Toolbar>
     </AppBar>,
         <Divider/>,
