@@ -8,7 +8,7 @@ import reducers from './reducers';
 
 
 (async () => {
-    const storeName = "sn"
+    const storeName = "s3"
     const persistedState = localStorage.getItem(storeName)
         ? JSON.parse(localStorage.getItem(storeName))
         : {}

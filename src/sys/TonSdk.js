@@ -1,12 +1,15 @@
 // eslint-disable-next-line no-undef
 import {TonClient} from "@tonclient/core";
+import SetcodeMultisig from './../contracts/SetcodeMultisigWallet.json';
 import SetcodeMultisig2 from './../contracts/SetcodeMultisigWallet2.json';
 import SafeMultisigWallet from "./../contracts/SafeMultisigWallet.json";
 //https://docs.ton.dev/86757ecb2/p/33b76d-quick-start
 //SetcodeMultisig2  SetcodeMultisig SafeMultisigWallet
+//https://github.com/tonlabs/sdk-samples/blob/master/examples/query/index.js
 const contractors = {
     "SafeMultisigWallet": SafeMultisigWallet,
-    "SetcodeMultisig" : SetcodeMultisig2
+    "SetcodeMultisig2" : SetcodeMultisig2,
+    "SetcodeMultisig" : SetcodeMultisig
 }
 
 export default {
@@ -15,6 +18,17 @@ export default {
             server_address: server
         }
     }),
+    balance: async (client, addr)=> {
+        return await client.net.query_collection({
+            collection: "accounts",
+            filter: {
+                id: {
+                    eq: addr,
+                },
+            },
+            result: "balance(format: DEC), code_hash",
+        })
+    },
     generateSeed: async (client, wordCount)=> {
         const count = wordCount || 12
         return await client.crypto.mnemonic_from_random(

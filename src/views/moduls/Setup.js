@@ -22,14 +22,15 @@ import Backdrop from '@material-ui/core/Backdrop';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CardActions from '@material-ui/core/CardActions';
 
-function Setup({createWallet, server}) {
+function Setup({createWallet, server, onFinish}) {
     const [page, setPage] = useState(null);
     const [loading, setLoading] = useState(false);
     const [seed, setSeed] = useState(null);
     const [contract, SetContract] = useState(null);
     const contracts = [
         {id: "SafeMultisigWallet", name: 'Safe Multisig (Recommend)', info: 'Formal verified wallet contract'},
-        {id: "SetcodeMultisig", name: 'Set Code Multisig (Surf)', info: 'Current surf'},
+        {id: "SetcodeMultisig2", name: 'Set Code Multisig (Surf)', info: 'Current surf'},
+        {id: "SetcodeMultisig", name: 'Set Code Multisig (Old Surf)', info: 'Old surf'},
     ]
     const useStyles = makeStyles((theme) => ({
         root: {
@@ -77,8 +78,10 @@ function Setup({createWallet, server}) {
         setLoading(true)
         TonSdk.getKeysBySeed(client, phrase).then(keys => {
             TonSdk.getAddr(client, keys, contract).then((addr)=>{
+                debugger
                 const wallet = {id:new Date().getTime(), keys: keys, contract, addr}
                 createWallet(wallet)
+                onFinish(wallet.id)
                 setLoading(false)
             }).catch(err => {
                 setErrorCreation(err.message)
@@ -109,7 +112,7 @@ function Setup({createWallet, server}) {
     };
 
     const saveNewWallet = (event) => {
-        createWalletOnReduxe(phrase, contract)
+        createWalletOnReduxe(phrase, 'SetcodeMultisig')
     };
 
 

@@ -38,10 +38,11 @@ import SetcodeMultisig from './../../contracts/SetcodeMultisigWallet.json';
 import SafeMultisigWallet from './../../contracts/SafeMultisigWallet.json';
 
 
-function App({accountTheme, theme, changeServer, server}) {
+function App({accountTheme, theme, changeServer, server, wallets}) {
     TonClient.useBinaryLibrary(libWeb);
 
     const [currentAddress, setCurrentAddress] = useState(null);
+    const [page, setPage] = useState(null);
 
     const useStyles = makeStyles((theme) => ({
         root: {
@@ -98,19 +99,10 @@ function App({accountTheme, theme, changeServer, server}) {
     }));
 
 
-    async function generateSeed(server) {
-        try {
-            const client = await this.ton.getClient(server);
-            return await client.crypto.mnemonicFromRandom(
-                {dictionary: this.ton.seedPhraseDictionaryEnglish, wordCount: this.ton.seedPhraseWorldCount}
-            );
-        } catch (e) {
-            console.log(e)
+    useEffect(() => {
+        if ((wallets || []).length === 0) {
+            setPage('setup')
         }
-    }
-
-    useEffect(async () => {
-
     }, [])
 
     const servers = [
@@ -201,8 +193,9 @@ function App({accountTheme, theme, changeServer, server}) {
                     </Toolbar>
                 </AppBar>
 
-                {/*<Wallet/>*/}
-                <Setup />
+
+                {page !== 'setup' && wallets && wallets.length > 0 && <Wallet wallet={wallets[0]}/>}
+                {page === 'setup' && <Setup onFinish={() => setPage(null)}/>}
 
                 {/*<Button variant="contained" color="primary" onClick={() => handleThemeChange()}>*/}
                 {/*    Primary*/}
