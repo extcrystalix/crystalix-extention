@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-undef
-import {TonClient} from "@tonclient/core";
+import {TonClient, Account, signerKeys} from "@tonclient/core";
 import SetcodeMultisig from './../contracts/SetcodeMultisigWallet.json';
 import SetcodeMultisig2 from './../contracts/SetcodeMultisigWallet2.json';
 import SafeMultisigWallet from "./../contracts/SafeMultisigWallet.json";
@@ -19,6 +19,36 @@ export default {
             server_address: server
         }
     }),
+    deployContract: (server, keys, contractId) => {
+        // // debugger
+        // const acc = new Account(contractors[contract], {
+        //     signer: signerKeys(keys),
+        // });
+        //
+        const contract = contractors[contractId]
+        const abi = {
+            type: 'Contract',
+            value: contract.abi
+        }
+        const deployOptions = {
+            abi,
+            deploy_set: {
+                tvc: contract.imageBase64,
+                initial_data: {}
+            },
+            call_set: {
+                function_name: 'constructor',
+                input: {owners: [`0x${keys.public}`], reqConfirms: 0},
+                useGiver: true,
+            },
+            signer: {
+                type: 'Keys',
+                keys: keys
+            }
+        }
+
+        return server.abi.encode_message(deployOptions);
+    },
     balance: async (client, addr) => {
         return await client.net.query_collection({
             collection: "accounts",

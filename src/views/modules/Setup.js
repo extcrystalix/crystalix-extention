@@ -68,6 +68,8 @@ function Setup({createWallet, server, onFinish}) {
         const client = TonSdk.client(server)
         TonSdk.generateSeed(client).then(seed=>{
             setPhrase(seed.phrase)
+        }).catch((e)=>{
+            debugger
         })
         setPage('create')
     }
@@ -111,7 +113,14 @@ function Setup({createWallet, server, onFinish}) {
     };
 
     const saveNewWallet = (event) => {
-        createWalletOnReduxe(phrase, 'SetcodeMultisig')
+        var server = TonSdk.client(server)
+        TonSdk.getKeysBySeed(server, phrase).then((keys)=>{
+            debugger
+            TonSdk.deployContract(server, keys,'SafeMultisigWallet').then(res=>{
+                debugger
+                createWalletOnReduxe(phrase, 'SetcodeMultisig')
+            })
+        })
     };
 
 

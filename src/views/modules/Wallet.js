@@ -137,6 +137,7 @@ const convert = (amountNano, decimalNum) => {
     const refresh = () => {
         const client = TonSdk.client(server)
         TonSdk.balance(client, wallet.addr).then((res)=>{
+
             if(res.result.length  > 0 && res.result[0].balance) {
                 let rawB = res.result[0].balance
                 let balance = convert(rawB, 3)
@@ -156,6 +157,8 @@ const convert = (amountNano, decimalNum) => {
                 setMsgs(blocks)
             })
 
+        }).finally(()=>{
+            client.close()
         })
     }
 
