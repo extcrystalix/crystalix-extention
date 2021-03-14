@@ -26,9 +26,13 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import {TonClient} from "@tonclient/core";
 import {libWeb} from "@tonclient/lib-web";
-import Wallet from "../moduls/Wallet";
-import Setup from "../moduls/Setup";
+import Wallet from "../modules/Wallet";
+import Setup from "../modules/Setup";
 import {connect} from 'react-redux';
+import BottomNavigation from '@material-ui/core/BottomNavigation';
+import BottomNavigationAction from '@material-ui/core/BottomNavigationAction';
+import SettingsIcon from '@material-ui/icons/Settings';
+import WbSunnyIcon from '@material-ui/icons/WbSunny';
 import {
     accountAuth, accountProfile, accountLogout, accountTheme, changeServer
 } from '../../actions/account';
@@ -194,14 +198,24 @@ function App({accountTheme, theme, changeServer, server, wallets}) {
                 </AppBar>
 
 
-                {page !== 'setup' && wallets && wallets.length > 0 && <Wallet wallet={wallets[0]}/>}
+                {page !== 'setup' && wallets && wallets.length > 0 && <Wallet
+                    toSetup={()=>setPage('setup')}
+                    wallets={wallets}
+                    wallet={wallets[0]}/>}
                 {page === 'setup' && <Setup onFinish={() => setPage(null)}/>}
+                {page !== 'setup' && wallets.length == 0 && <Setup onFinish={() => setPage(null)}/>}
 
                 {/*<Button variant="contained" color="primary" onClick={() => handleThemeChange()}>*/}
                 {/*    Primary*/}
                 {/*</Button>*/}
 
             </div>
+            <BottomNavigation
+
+            >
+
+                <BottomNavigationAction label="Nearby" icon={<WbSunnyIcon />} onClick={handleThemeChange} />
+            </BottomNavigation>
         </ThemeProvider>
     );
 }

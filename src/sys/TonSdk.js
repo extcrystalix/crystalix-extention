@@ -6,10 +6,11 @@ import SafeMultisigWallet from "./../contracts/SafeMultisigWallet.json";
 //https://docs.ton.dev/86757ecb2/p/33b76d-quick-start
 //SetcodeMultisig2  SetcodeMultisig SafeMultisigWallet
 //https://github.com/tonlabs/sdk-samples/blob/master/examples/query/index.js
+//https://docs.ton.dev/86757ecb2/p/35a3f3-field-descriptions/t/3383bd
 const contractors = {
     "SafeMultisigWallet": SafeMultisigWallet,
-    "SetcodeMultisig2" : SetcodeMultisig2,
-    "SetcodeMultisig" : SetcodeMultisig
+    "SetcodeMultisig2": SetcodeMultisig2,
+    "SetcodeMultisig": SetcodeMultisig
 }
 
 export default {
@@ -18,7 +19,7 @@ export default {
             server_address: server
         }
     }),
-    balance: async (client, addr)=> {
+    balance: async (client, addr) => {
         return await client.net.query_collection({
             collection: "accounts",
             filter: {
@@ -29,7 +30,30 @@ export default {
             result: "balance(format: DEC), code_hash",
         })
     },
-    generateSeed: async (client, wordCount)=> {
+
+    txs: async (client, addr) => {
+        return await client.net.query_collection({
+            collection: "transactions",
+            filter: {
+                account_addr: {
+                    eq: addr,
+                },
+            },
+            result: "id,now",
+        })
+    },
+    msgsFrom: async (client, addr) => {
+        return await client.net.query_collection({
+            collection: "messages",
+            filter: {
+                src: {
+                    eq: addr,
+                },
+            },
+            result: "id,msg_type,created_at",
+        })
+    },
+    generateSeed: async (client, wordCount) => {
         const count = wordCount || 12
         return await client.crypto.mnemonic_from_random(
             {dictionary: 1, wordCount: count}

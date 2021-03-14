@@ -5,6 +5,8 @@ import {
   ACCOUNT_THEME,
   ACCOUNT_CHANGE_SERVER,
   ACCOUNT_ADD_WALLET, CREATE_WALLET,
+  WALLET_DELETE,
+  WALLET_CHANGE_SETTINGS,
 } from '../actions/account';
 
 const initialState = {
@@ -50,11 +52,27 @@ export default function account(state = initialState, action) {
         server: data
       };
     case CREATE_WALLET:
-      const wallets = [...(state.wallets || [])]
+      let wallets = [...(state.wallets || [])]
       wallets.push(data)
       return {
         ...state,
         wallets
+      };
+    case WALLET_CHANGE_SETTINGS:
+      let wallets2 = [...(state.wallets || [])]
+      wallets2.filter(w=>w.id === data.id).forEach(w=>{
+        w.label = data.label
+      })
+      return {
+        ...state,
+        wallets:wallets2
+      };
+    case WALLET_DELETE:
+      let wallets3 = [...(state.wallets || [])]
+      let newWallets = wallets3.filter(w=>w.id !== data.id)
+      return {
+        ...state,
+        wallets:newWallets
       };
     default:
       return state;

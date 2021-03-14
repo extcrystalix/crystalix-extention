@@ -78,7 +78,6 @@ function Setup({createWallet, server, onFinish}) {
         setLoading(true)
         TonSdk.getKeysBySeed(client, phrase).then(keys => {
             TonSdk.getAddr(client, keys, contract).then((addr)=>{
-                debugger
                 const wallet = {id:new Date().getTime(), keys: keys, contract, addr}
                 createWallet(wallet)
                 onFinish(wallet.id)
