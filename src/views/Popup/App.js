@@ -140,6 +140,9 @@ function App({accountTheme, theme, changeServer, server, wallets}) {
     const darkTheme = createMuiTheme({
         palette: {
             type: palletType,
+            primary: {
+                main: darkState ? "#2196f3" : "#4dabf5"
+            }
         }
     });
 

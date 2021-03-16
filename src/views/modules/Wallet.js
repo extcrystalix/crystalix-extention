@@ -34,6 +34,8 @@ import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import Switch from "@material-ui/core/Switch";
 import SettingsIcon from '@material-ui/icons/Settings';
 import SyncIcon from '@material-ui/icons/Sync';
+import LaunchIcon from '@material-ui/icons/Launch';
+import CopyIcon from '@material-ui/icons/FileCopy';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -42,6 +44,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import {accountAuth, accountLogout, accountProfile, walletDelete, changeSettings} from "../../actions";
 import {connect} from "react-redux";
+import Snackbar from '@material-ui/core/Snackbar';
 
 import Timeline from '@material-ui/lab/Timeline';
 import TimelineItem from '@material-ui/lab/TimelineItem';
@@ -52,9 +55,10 @@ import TimelineDot from '@material-ui/lab/TimelineDot';
 import TimelineOppositeContent from '@material-ui/lab/TimelineOppositeContent';
 import moment from 'moment';
 
-function Wallet({wallet,wallets, toSetup, changeSettings, walletDelete, server}) {
+function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}) {
     const [txs, setTxs] = useState([]);
-    const [msgs, setMsgs] = useState([]);
+    const [msgsFrom, setMsgsFrom] = useState([]);
+    const [msgsTo, setMsgsTo] = useState([]);
     const [balance, setBalance] = useState(null);
 
     const useStyles = makeStyles((theme) => ({
@@ -113,7 +117,7 @@ function Wallet({wallet,wallets, toSetup, changeSettings, walletDelete, server})
             pointerEvents: 'none',
         },
     }));
-const convert = (amountNano, decimalNum) => {
+    const convert = (amountNano, decimalNum) => {
         const minDecimalNum = 3;
         const amountBigInt = amountNano;
         const integer = amountBigInt / '1000000000';
@@ -133,32 +137,32 @@ const convert = (amountNano, decimalNum) => {
     }, [])
 
 
-
     const refresh = () => {
         const client = TonSdk.client(server)
-        TonSdk.balance(client, wallet.addr).then((res)=>{
+        TonSdk.balance(client, wallet.addr).then((res) => {
 
-            if(res.result.length  > 0 && res.result[0].balance) {
-                let rawB = res.result[0].balance
-                let balance = convert(rawB, 3)
-                setBalance(balance)
-            }
-            TonSdk.txs(client, wallet.addr).then(tx=>{
-                if(tx && tx.result) setTxs(tx.result)
-            })
-            TonSdk.msgsFrom(client, wallet.addr).then(msgs=>{
-                let blocks = msgs.result.map(d=>{
-                    let b = {}
-                    b.id = d.id
-                    b.now = d.created_at
-                    b.msg_type = d.msg_type
-                    return b
-                })
-                setMsgs(blocks)
-            })
-
-        }).finally(()=>{
-            client.close()
+            // TonSdk.balance(client, wallet.addr).then((res)=>{
+            //
+            //     if(res.result.length  > 0 && res.result[0].balance) {
+            //         let rawB = res.result[0].balance
+            //         let balance = convert(rawB, 3)
+            //         setBalance(balance)
+            //     }
+            //
+            TonSdk.txs(client, wallet.addr).then(txs => setTxs(txs.result))
+            // TonSdk.msgsFrom(client, wallet.addr, wallet.keys).then(msgs => {
+            //     let blocks = msgs.result.map(d => {
+            //         let b = {}
+            //         b.id = d.id
+            //         b.now = d.created_at
+            //         b.msg_type = d.msg_type
+            //         return b
+            //     })
+            //     setMsgsFrom(blocks)
+            // })
+            //
+        }).finally(() => {
+            //client.close()
         })
     }
 
@@ -188,6 +192,7 @@ const convert = (amountNano, decimalNum) => {
     };
 
     const [walletEdit, setWalletEdit] = React.useState(null);
+    const [copied, setCopied] = React.useState(false);
     const [openSettings, setOpenSettings] = React.useState(false);
 
     const handleClickOpenSettings = () => {
@@ -199,28 +204,49 @@ const convert = (amountNano, decimalNum) => {
     };
 
     const short = (addr) => {
-        return addr.substr(0,7) + "..." + addr.substr(-5)
+        return addr.substr(0, 3) + "..." + addr.substr(-5)
     }
+
+    const short2 = (addr) => {
+        return addr.substr(0, 3) + "..." + addr.substr(-3)
+    }
+
+
 
     return [<AppBar position="static" color="default">
         <Toolbar>
             <IconButton color="primary" aria-label="upload picture" component="span">
-                <SyncIcon onClick={refresh} />
+                <SyncIcon onClick={refresh}/>
             </IconButton>
             <Typography variant="h6" noWrap className={classes.title}>
-                {wallet.label ? wallet.label : "Account  [" + wallet.addr.substr(2,1) + ''+ wallet.addr.substr(-1) + ']'}
+                {wallet.label ? wallet.label : "Account  [" + wallet.addr.substr(2, 1) + '' + wallet.addr.substr(-1) + ']'}
+
             </Typography>
 
-            <CopyToClipboard text={wallet.addr}>
-            <Typography
-                aria-owns={open ? 'mouse-over-popover' : undefined}
-                aria-haspopup="true"
-                onMouseEnter={handlePopoverOpen}
-                onMouseLeave={handlePopoverClose}
-                variant={"subtitle2"} className={classes.title2}>
-                {short(wallet.addr)}
-            </Typography>
+            <CopyToClipboard text={wallet.addr} onCopy={()=>{
+                setCopied(true)
+                setTimeout(()=>setCopied(false), 1000)
+            }
+            } >
+                <Typography
+                    aria-owns={open ? 'mouse-over-popover' : undefined}
+                    aria-haspopup="true"
+                    onClick={handlePopoverClose}
+                    onMouseEnter={handlePopoverOpen}
+                    onMouseLeave={handlePopoverClose}
+                    variant={"subtitle2"} className={classes.title2}>
+                    {short(wallet.addr)}
+                    <IconButton color="primary" size="small" aria-label="upload picture" component="span">
+                        <CopyIcon fontSize="inherit"/>
+                    </IconButton>
+                </Typography>
             </CopyToClipboard>
+            <Snackbar
+                anchorOrigin={{vertical:'top', horizontal:'center'}}
+                autoHideDuration={2000}
+                open={copied}
+                message="Copied!"
+            />
             <Popover
                 id="mouse-over-popover"
                 className={classes.popover}
@@ -242,7 +268,8 @@ const convert = (amountNano, decimalNum) => {
             >
                 <Typography>Copy to clipboard</Typography>
             </Popover>
-            <IconButton edge="end" className={classes.menuButton}  onClick={handleClickNet}  color="inherit" aria-label="menu">
+            <IconButton edge="end" className={classes.menuButton} onClick={handleClickNet} color="inherit"
+                        aria-label="menu">
                 <MoreVertIcon/>
             </IconButton>
             <Menu
@@ -252,27 +279,27 @@ const convert = (amountNano, decimalNum) => {
                 open={Boolean(anchorElNet)}
                 onClose={handleCloseNet}
             >
-                {wallets.map((w,i) => <MenuItem key={w.id}>
+                {wallets.map((w, i) => <MenuItem key={w.id}>
                     <ListItemIcon>
-                        <WifiIcon />
+                        <WifiIcon/>
                     </ListItemIcon>
-                    <ListItemText primary={w.label ? w.label : 'Account ' + (i+1)}/>
+                    <ListItemText primary={w.label ? w.label : 'Account ' + (i + 1)}/>
                     <ListItemSecondaryAction>
                         <IconButton color="primary" aria-label="upload picture" component="span">
-                            <SettingsIcon onClick={()=>{
+                            <SettingsIcon onClick={() => {
                                 setWalletEdit(w)
                                 setOpenSettings(true)
-                            }} />
+                            }}/>
                         </IconButton>
                     </ListItemSecondaryAction>
                 </MenuItem>)}
 
-               <MenuItem>
-                   <ListItemIcon>
-                       <Fab size="small" color="secondary"  aria-label="add">
-                            <AddIcon onClick={toSetup} />
-                       </Fab>
-                   </ListItemIcon>
+                <MenuItem>
+                    <ListItemIcon>
+                        <Fab size="small" color="secondary" aria-label="add">
+                            <AddIcon onClick={toSetup}/>
+                        </Fab>
+                    </ListItemIcon>
                 </MenuItem>
             </Menu>
         </Toolbar>
@@ -300,14 +327,14 @@ const convert = (amountNano, decimalNum) => {
                     margin="dense"
                     id="name"
                     label="Label"
-                    onChange={(e)=>walletEdit.label = e.target.value}
+                    onChange={(e) => walletEdit.label = e.target.value}
                     defaultValue={walletEdit && walletEdit.label ? walletEdit.label : 'Account'}
                     type="email"
                     fullWidth
                 />
             </DialogContent>
             <DialogActions>
-                <Button  onClick={()=>{
+                <Button onClick={() => {
                     walletDelete({...walletEdit})
                     handleCloseSettings()
                 }} color="secondary">
@@ -316,7 +343,7 @@ const convert = (amountNano, decimalNum) => {
                 <Button onClick={handleCloseSettings} color="primary">
                     Cancel
                 </Button>
-                <Button onClick={()=>{
+                <Button onClick={() => {
                     changeSettings({...walletEdit})
                     handleCloseSettings()
                 }} color="primary">
@@ -334,18 +361,46 @@ const convert = (amountNano, decimalNum) => {
                 </Paper>
             </Grid>
         </Grid>,
-        <Timeline align="alternate">
-            {(txs).concat(msgs).sort((a,b)=>a.now - b.now).map(d=><TimelineItem>
+        <Timeline>
+            {(txs).concat(msgsFrom).concat(msgsTo).sort((a, b) => a.now - b.now).map(d => <TimelineItem>
                 <TimelineOppositeContent>
-                    <Typography color="textSecondary">{moment(d.now*1000).fromNow()}</Typography>
+                    <Typography color="subtitle1">
+                        {moment(d.now * 1000).fromNow(true)}
+                    </Typography>
+
+                    <Typography color="textSecondary">
+                        {moment(d.now * 1000).format('DD/MM/YYYY')}
+                    </Typography>
                 </TimelineOppositeContent>
                 <TimelineSeparator>
-                    {d.msg_type && <TimelineDot  style={{backgroundColor:'#36c05c'}}/> }
-                    {!d.msg_type && <TimelineDot variant="outlined"/> }
-                    <TimelineConnector />
+                    {d.msg_type && <TimelineDot style={{backgroundColor: '#36c05c'}}/>}
+                    {!d.msg_type && <TimelineDot variant="outlined"/>}
+                    <TimelineConnector/>
                 </TimelineSeparator>
                 <TimelineContent>
-                    <Typography>{short(d.id)}</Typography>
+                    <Grid container direction="row" alignItems="center">
+                        <Grid item>
+                            <CopyToClipboard text={d.id} onCopy={()=>{
+                                setCopied(true)
+                                setTimeout(()=>setCopied(false), 1000)
+                            }
+                            }>
+                                <IconButton color="primary" size="small" aria-label="upload picture" component="span">
+                                    <CopyIcon fontSize="inherit"/>
+                                </IconButton>
+                            </CopyToClipboard>
+                        </Grid>
+                        <Grid item>
+                            <Typography>{short2(d.id)}
+                                {/*<IconButton color="primary" size="small" aria-label="upload picture" component="span">*/}
+                                {/*    <LaunchIcon fontSize="inherit"/>*/}
+                                {/*</IconButton>*/}
+
+                            </Typography>
+                        </Grid>
+                    </Grid>
+
+
                 </TimelineContent>
             </TimelineItem>)}
         </Timeline>]

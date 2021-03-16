@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-undef
-import {TonClient, Account, signerKeys} from "@tonclient/core";
+import {TonClient, Account, signerKeys, abiContract} from "@tonclient/core";
 import SetcodeMultisig from './../contracts/SetcodeMultisigWallet.json';
 import SetcodeMultisig2 from './../contracts/SetcodeMultisigWallet2.json';
 import SafeMultisigWallet from "./../contracts/SafeMultisigWallet.json";
@@ -7,17 +7,35 @@ import SafeMultisigWallet from "./../contracts/SafeMultisigWallet.json";
 //SetcodeMultisig2  SetcodeMultisig SafeMultisigWallet
 //https://github.com/tonlabs/sdk-samples/blob/master/examples/query/index.js
 //https://docs.ton.dev/86757ecb2/p/35a3f3-field-descriptions/t/3383bd
+//https://github.com/tonlabs/sdk-samples/blob/master/examples/transfer-with-comment/index.js
 const contractors = {
     "SafeMultisigWallet": SafeMultisigWallet,
     "SetcodeMultisig2": SetcodeMultisig2,
     "SetcodeMultisig": SetcodeMultisig
 }
+const transferAbi = {
+    "ABI version": 2,
+    "functions": [
+        {
+            "name": "transfer",
+            "id": "0x00000000",
+            "inputs": [{"name":"comment","type":"bytes"}],
+            "outputs": []
+        }
+    ],
+    "events": [],
+    "data": []
+}
 
 export default {
     client: (server) => new TonClient({
         network: {
-            server_address: server
-        }
+            server_address: server,
+            message_retries_count: 3,
+        },
+        abi: {
+            message_expiration_timeout: 30000,
+        },
     }),
     deployContract: (server, keys, contractId) => {
         // // debugger
@@ -61,18 +79,37 @@ export default {
         })
     },
 
-    txs: async (client, addr) => {
-        return await client.net.query_collection({
+    txs: (client, addr) => {
+
+        return client.net.query_collection({
             collection: "transactions",
             filter: {
                 account_addr: {
                     eq: addr,
                 },
             },
-            result: "id,now",
+            result: "id,now,out_messages{id,msg_type,status,body,boc}",
+        }).then(txs=>{
+
+            txs.result.forEach(transaction=>{
+                if(transaction.out_messages.length > 0){
+                    let dataMsg = transaction.out_messages[0]
+                    let abi = abiContract(transferAbi)
+                    //debugger//abiContract(SetcodeMultisig),
+                    client.abi.decode_message({
+                        abi: abi,
+                        message: dataMsg.body
+                    }).then(res=>{
+                        debugger
+                    });
+                }
+            })
+
+            return txs
         })
+
     },
-    msgsFrom: async (client, addr) => {
+    msgsFrom: async (client, addr, keys) => {
         return await client.net.query_collection({
             collection: "messages",
             filter: {
@@ -80,7 +117,18 @@ export default {
                     eq: addr,
                 },
             },
-            result: "id,msg_type,created_at",
+            result: "id,msg_type,created_at,created_lt",
+        })
+    },
+    msgsTo: async (client, addr) => {
+        return await client.net.query_collection({
+            collection: "messages",
+            filter: {
+                dst: {
+                    eq: addr,
+                },
+            },
+            result: "id,msg_type,created_at,created_lt",
         })
     },
     generateSeed: async (client, wordCount) => {
