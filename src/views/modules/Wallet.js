@@ -149,7 +149,9 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
             //         setBalance(balance)
             //     }
             //
-            TonSdk.txs(client, wallet.addr).then(txs => setTxs(txs.result))
+            TonSdk.txs(client, wallet.addr).then(txs => {
+                setTxs(txs)
+            })
             // TonSdk.msgsFrom(client, wallet.addr, wallet.keys).then(msgs => {
             //     let blocks = msgs.result.map(d => {
             //         let b = {}
@@ -362,7 +364,7 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
             </Grid>
         </Grid>,
         <Timeline>
-            {(txs).concat(msgsFrom).concat(msgsTo).sort((a, b) => a.now - b.now).map(d => <TimelineItem>
+            {(txs).concat(msgsFrom).concat(msgsTo).sort((a, b) => b.now - a.now).map(d => <TimelineItem>
                 <TimelineOppositeContent>
                     <Typography color="subtitle1">
                         {moment(d.now * 1000).fromNow(true)}
@@ -399,7 +401,7 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
                             </Typography>
                         </Grid>
                     </Grid>
-
+                    <Typography color="textSecondary">{d.msg}</Typography>
 
                 </TimelineContent>
             </TimelineItem>)}

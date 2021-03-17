@@ -88,24 +88,30 @@ export default {
                     eq: addr,
                 },
             },
-            result: "id,now,out_messages{id,msg_type,status,body,boc}",
+            result: "id,now,block_id,status,total_fees,success,in_message{id,msg_type,status,body,boc}",
         }).then(txs=>{
 
-            txs.result.forEach(transaction=>{
-                if(transaction.out_messages.length > 0){
-                    let dataMsg = transaction.out_messages[0]
+            let promises = txs.result.map(transaction=>{
+                if(transaction.in_message){
+                    let message = transaction.in_message.boc
                     let abi = abiContract(transferAbi)
-                    //debugger//abiContract(SetcodeMultisig),
-                    client.abi.decode_message({
+                    return client.abi.decode_message({
                         abi: abi,
-                        message: dataMsg.body
+                        message: message
                     }).then(res=>{
-                        debugger
+                        var comment = Buffer.from(res.value.comment, 'hex').toString()
+                        transaction.msg =  comment
+                        return transaction
+                    }).catch(e=>{
+                        return transaction
                     });
+                }else{
+                    return Promise.resolve(transaction)
                 }
             })
 
-            return txs
+
+            return Promise.all(promises)
         })
 
     },
