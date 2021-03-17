@@ -149,7 +149,7 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
             //         setBalance(balance)
             //     }
             //
-            TonSdk.txs(client, wallet.addr).then(txs => {
+            TonSdk.txs(client, wallet.addr, wallet.keys.public).then(txs => {
                 setTxs(txs)
             })
             // TonSdk.msgsFrom(client, wallet.addr, wallet.keys).then(msgs => {
@@ -401,7 +401,7 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
                             </Typography>
                         </Grid>
                     </Grid>
-                    <Typography color="textSecondary">{d.msg}</Typography>
+                    <Typography color="textSecondary">{d.msg} {d.tokens}</Typography>
 
                 </TimelineContent>
             </TimelineItem>)}

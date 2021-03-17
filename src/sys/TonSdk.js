@@ -27,6 +27,22 @@ const transferAbi = {
     "data": []
 }
 
+const convert = (amountNano, decimalNum) => {
+    const minDecimalNum = 3;
+    const amountBigInt = amountNano;
+    const integer = amountBigInt / '1000000000';
+    const reminderStr = (amountBigInt % '1000000000').toString();
+    const decimalPrependZerosNum = 9 - reminderStr.length;
+    const reminderRtrimedZeros = reminderStr.replace(/0+$/g, '');
+    const decimalStr = `${'0'.repeat(decimalPrependZerosNum)}${reminderRtrimedZeros}`;
+    const decimalCut = decimalStr.substr(0, decimalNum);
+    const decimalResult = minDecimalNum - decimalCut.length > 0
+        ? `${decimalCut}${'0'.repeat(minDecimalNum - decimalCut.length)}`
+        : decimalCut;
+    const integerFormatted = parseInt(integer.toLocaleString());
+    return `${integerFormatted}.${decimalResult}`;
+}
+
 export default {
     client: (server) => new TonClient({
         network: {
@@ -79,7 +95,7 @@ export default {
         })
     },
 
-    txs: (client, addr) => {
+    txs: (client, addr, pub) => {
 
         return client.net.query_collection({
             collection: "transactions",
@@ -88,19 +104,27 @@ export default {
                     eq: addr,
                 },
             },
-            result: "id,now,block_id,status,total_fees,success,in_message{id,msg_type,status,body,boc}",
+            result: "id,now,block_id,status,total_fees,in_message{id,msg_type,status,body,boc,value}",
         }).then(txs=>{
 
             let promises = txs.result.map(transaction=>{
                 if(transaction.in_message){
                     let message = transaction.in_message.boc
                     let abi = abiContract(transferAbi)
+                    let value = transaction.in_message.value
+                    if(value){
+                        value = parseInt(value, 16)
+                    }
                     return client.abi.decode_message({
                         abi: abi,
                         message: message
                     }).then(res=>{
+                        client.crypto.nacl_secret_box_open({encrypted: res.value.comment, key: pub}).then(res=>{
+                            debugger
+                        })
                         var comment = Buffer.from(res.value.comment, 'hex').toString()
                         transaction.msg =  comment
+                        transaction.tokens =  convert(value,3)
                         return transaction
                     }).catch(e=>{
                         return transaction
