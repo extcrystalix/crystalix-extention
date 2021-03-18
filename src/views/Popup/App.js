@@ -21,6 +21,7 @@ import {createMuiTheme, ThemeProvider} from "@material-ui/core/styles";
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Adjust from '@material-ui/icons/Adjust';
 import Menu from '@material-ui/core/Menu';
+import Container from '@material-ui/core/Container';
 import MenuItem from '@material-ui/core/MenuItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -43,7 +44,7 @@ import SafeMultisigWallet from './../../contracts/SafeMultisigWallet.json';
 
 
 function App({accountTheme, theme, changeServer, server, wallets}) {
-    TonClient.useBinaryLibrary(libWeb);
+
 
     const [currentAddress, setCurrentAddress] = useState(null);
     const [page, setPage] = useState(null);
@@ -167,7 +168,7 @@ function App({accountTheme, theme, changeServer, server, wallets}) {
     return (
         <ThemeProvider theme={darkTheme}>
             <CssBaseline/>
-            <div className="App">
+            <Container disableGutters className="App">
                 <AppBar position="static" color="default">
                     <Toolbar>
 
@@ -178,9 +179,9 @@ function App({accountTheme, theme, changeServer, server, wallets}) {
                             <Menu
                                 id="simple-menu"
                                 anchorEl={anchorElNet}
-                                keepMounted
                                 open={Boolean(anchorElNet)}
                                 onClose={handleCloseNet}
+                                varian={'menu'}
                             >
                                 {servers.map((net) => <MenuItem key={net.server} onClick={() => {
                                     handleCloseNet()
@@ -206,19 +207,18 @@ function App({accountTheme, theme, changeServer, server, wallets}) {
                     wallets={wallets}
                     wallet={wallets[0]}/>}
                 {page === 'setup' && <Setup onFinish={() => setPage(null)}/>}
-                {page !== 'setup' && wallets.length == 0 && <Setup onFinish={() => setPage(null)}/>}
+                {page !== 'setup' && wallets.length == 0 && <Setup isInit={wallets.length === 0} onFinish={() => setPage(null)}/>}
 
                 {/*<Button variant="contained" color="primary" onClick={() => handleThemeChange()}>*/}
                 {/*    Primary*/}
                 {/*</Button>*/}
 
-            </div>
-            <BottomNavigation
+                <BottomNavigation>
+                    <BottomNavigationAction label="Nearby" icon={<WbSunnyIcon />} onClick={handleThemeChange} />
+                </BottomNavigation>
 
-            >
+            </Container>
 
-                <BottomNavigationAction label="Nearby" icon={<WbSunnyIcon />} onClick={handleThemeChange} />
-            </BottomNavigation>
         </ThemeProvider>
     );
 }

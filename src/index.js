@@ -5,9 +5,12 @@ import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 import storeCreatorFactory from 'reduxed-chrome-storage';
 import reducers from './reducers';
-
+import {TonClient} from "@tonclient/core";
+import {libWeb, libWebSetup} from "@tonclient/lib-web";
 
 (async () => {
+
+    TonClient.useBinaryLibrary(libWeb);
     const storeName = "s3"
     const persistedState = localStorage.getItem(storeName)
         ? JSON.parse(localStorage.getItem(storeName))
@@ -24,20 +27,3 @@ import reducers from './reducers';
         document.getElementById('root')
     );
 })();
-
-
-    // const store = await storeCreatorFactory({createStore})(reducers);
-    // //const store = createStore(reducers)
-    // ReactDOM.render(
-    //     <Provider store={store}>
-    //         <App />
-    //     </Provider>,
-    //     document.getElementById('root')
-    // );
-// const store = storeCreatorFactory({createStore})(reducers);
-// ReactDOM.render(
-//     <Provider store={store}>
-//         <App />
-//     </Provider>,
-//     document.getElementById('root')
-// );

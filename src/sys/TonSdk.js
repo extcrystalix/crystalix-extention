@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-undef
 import {TonClient, Account, signerKeys, abiContract} from "@tonclient/core";
+import {libWeb} from "@tonclient/lib-web";
 import SetcodeMultisig from './../contracts/SetcodeMultisigWallet.json';
 import SetcodeMultisig2 from './../contracts/SetcodeMultisigWallet2.json';
 import SafeMultisigWallet from "./../contracts/SafeMultisigWallet.json";
@@ -44,15 +45,26 @@ const convert = (amountNano, decimalNum) => {
 }
 
 export default {
-    client: (server) => new TonClient({
-        network: {
-            server_address: server,
-            message_retries_count: 3,
-        },
-        abi: {
-            message_expiration_timeout: 30000,
-        },
-    }),
+    // client: (server) => new TonClient({
+    //     network: {
+    //         server_address: server,
+    //         message_retries_count: 3,
+    //     },
+    //     abi: {
+    //         message_expiration_timeout: 30000,
+    //     },
+    // }),
+    client: (server) => {
+
+        let conf = {
+            network: {
+                server_address: server,
+                message_retries_count: 3,
+            },
+        }
+        TonClient.defaultConfig = conf;
+        return TonClient.default
+    },
     deployContract: (server, keys, contractId) => {
         // // debugger
         // const acc = new Account(contractors[contract], {
@@ -91,7 +103,7 @@ export default {
                     eq: addr,
                 },
             },
-            result: "balance(format: DEC), code_hash",
+            result: "balance",
         })
     },
 

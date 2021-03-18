@@ -7,9 +7,9 @@ import {libWeb, libWebSetup} from "@tonclient/lib-web";
 
 
 chrome.browserAction.setBadgeBackgroundColor({ color: [255, 0, 0, 255] });
-chrome.browserAction.setBadgeText ( { text: "1" } );
+//chrome.browserAction.setBadgeText ( { text: "1" } );
 
 chrome.runtime.onStartup.addListener(async () => {
     chrome.browserAction.setBadgeBackgroundColor({ color: [255, 0, 0, 255] });
-    chrome.browserAction.setBadgeText ( { text: "loading" } );
+    //chrome.browserAction.setBadgeText ( { text: "loading" } );
 });

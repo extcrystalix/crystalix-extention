@@ -12,8 +12,11 @@ code {
     monospace;
 }
 
-.App {
-  text-align: center;
+body, #root, .App  {
   width: 360px;
   height: 400px;
+}
+
+.App {
+  text-align: center;
 }

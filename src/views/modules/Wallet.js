@@ -54,6 +54,12 @@ import TimelineContent from '@material-ui/lab/TimelineContent';
 import TimelineDot from '@material-ui/lab/TimelineDot';
 import TimelineOppositeContent from '@material-ui/lab/TimelineOppositeContent';
 import moment from 'moment';
+import MonetizationOnIcon from '@material-ui/icons/MonetizationOn';
+import SmsIcon from '@material-ui/icons/Sms';
+
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+
 
 function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}) {
     const [txs, setTxs] = useState([]);
@@ -134,37 +140,29 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
     }
     useEffect(async () => {
         refresh()
-    }, [])
+    }, [server])
 
 
     const refresh = () => {
+
         const client = TonSdk.client(server)
         TonSdk.balance(client, wallet.addr).then((res) => {
 
-            // TonSdk.balance(client, wallet.addr).then((res)=>{
-            //
-            //     if(res.result.length  > 0 && res.result[0].balance) {
-            //         let rawB = res.result[0].balance
-            //         let balance = convert(rawB, 3)
-            //         setBalance(balance)
-            //     }
-            //
+
+            if (res.result.length > 0 && res.result[0].balance) {
+                let rawB = res.result[0].balance
+                let balance = convert(rawB, 3)
+                setBalance(balance)
+            }else{
+                setBalance("0")
+            }
+
+        }).then(()=>{
+           client.close()
+        }).then(()=>{
             TonSdk.txs(client, wallet.addr, wallet.keys.public).then(txs => {
                 setTxs(txs)
             })
-            // TonSdk.msgsFrom(client, wallet.addr, wallet.keys).then(msgs => {
-            //     let blocks = msgs.result.map(d => {
-            //         let b = {}
-            //         b.id = d.id
-            //         b.now = d.created_at
-            //         b.msg_type = d.msg_type
-            //         return b
-            //     })
-            //     setMsgsFrom(blocks)
-            // })
-            //
-        }).finally(() => {
-            //client.close()
         })
     }
 
@@ -213,6 +211,9 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
         return addr.substr(0, 3) + "..." + addr.substr(-3)
     }
 
+    const isNotEmpty = (msg) => {
+        return msg && msg !== ''
+    }
 
 
     return [<AppBar position="static" color="default">
@@ -225,11 +226,11 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
 
             </Typography>
 
-            <CopyToClipboard text={wallet.addr} onCopy={()=>{
+            <CopyToClipboard text={wallet.addr} onCopy={() => {
                 setCopied(true)
-                setTimeout(()=>setCopied(false), 1000)
+                setTimeout(() => setCopied(false), 1000)
             }
-            } >
+            }>
                 <Typography
                     aria-owns={open ? 'mouse-over-popover' : undefined}
                     aria-haspopup="true"
@@ -244,7 +245,7 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
                 </Typography>
             </CopyToClipboard>
             <Snackbar
-                anchorOrigin={{vertical:'top', horizontal:'center'}}
+                anchorOrigin={{vertical: 'top', horizontal: 'center'}}
                 autoHideDuration={2000}
                 open={copied}
                 message="Copied!"
@@ -282,13 +283,11 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
                 onClose={handleCloseNet}
             >
                 {wallets.map((w, i) => <MenuItem key={w.id}>
-                    <ListItemIcon>
-                        <WifiIcon/>
-                    </ListItemIcon>
+
                     <ListItemText primary={w.label ? w.label : 'Account ' + (i + 1)}/>
                     <ListItemSecondaryAction>
-                        <IconButton color="primary" aria-label="upload picture" component="span">
-                            <SettingsIcon onClick={() => {
+                        <IconButton color="primary" edge="end"  aria-label="upload picture" component="div">
+                            <SettingsIcon  onClick={() => {
                                 setWalletEdit(w)
                                 setOpenSettings(true)
                             }}/>
@@ -296,8 +295,8 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
                     </ListItemSecondaryAction>
                 </MenuItem>)}
 
-                <MenuItem>
-                    <ListItemIcon>
+                <MenuItem style={{justifyContent: "center"}}>
+                    <ListItemIcon edge="center" >
                         <Fab size="small" color="secondary" aria-label="add">
                             <AddIcon onClick={toSetup}/>
                         </Fab>
@@ -308,11 +307,10 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
     </AppBar>,
         <Divider/>,
         <Dialog open={openSettings} onClose={handleCloseSettings} aria-labelledby="form-dialog-title">
-            <DialogTitle id="form-dialog-title">Subscribe</DialogTitle>
+            <DialogTitle id="form-dialog-title">Wallet settings</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    To subscribe to this website, please enter your email address here. We will send updates
-                    occasionally.
+                    You could change wallet labels.
                 </DialogContentText>
                 <TextField
                     autoFocus
@@ -363,7 +361,8 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
                 </Paper>
             </Grid>
         </Grid>,
-        <Timeline>
+        <Paper square>
+            <Timeline>
             {(txs).concat(msgsFrom).concat(msgsTo).sort((a, b) => b.now - a.now).map(d => <TimelineItem>
                 <TimelineOppositeContent>
                     <Typography color="subtitle1">
@@ -380,11 +379,13 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
                     <TimelineConnector/>
                 </TimelineSeparator>
                 <TimelineContent>
-                    <Grid container direction="row" alignItems="center">
-                        <Grid item>
-                            <CopyToClipboard text={d.id} onCopy={()=>{
+                    <Grid container direction="row" justify="flex-start" spacing={1}
+                          alignItems="flex-start"
+                    >
+                        <Grid item xs={3}>
+                            <CopyToClipboard text={d.id} onCopy={() => {
                                 setCopied(true)
-                                setTimeout(()=>setCopied(false), 1000)
+                                setTimeout(() => setCopied(false), 1000)
                             }
                             }>
                                 <IconButton color="primary" size="small" aria-label="upload picture" component="span">
@@ -392,20 +393,33 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
                                 </IconButton>
                             </CopyToClipboard>
                         </Grid>
-                        <Grid item>
-                            <Typography>{short2(d.id)}
-                                {/*<IconButton color="primary" size="small" aria-label="upload picture" component="span">*/}
-                                {/*    <LaunchIcon fontSize="inherit"/>*/}
-                                {/*</IconButton>*/}
-
-                            </Typography>
+                        <Grid item xs={9}>
+                            <Typography align={"left"}>{short2(d.id)}</Typography>
                         </Grid>
+
+                        {isNotEmpty(d.tokens) && <Grid item xs={3}>
+                            <IconButton color="primary" size="small" aria-label="upload picture" component="span">
+                                <MonetizationOnIcon fontSize="inherit"/>
+                            </IconButton>
+                        </Grid>}
+                        {isNotEmpty(d.tokens) && <Grid item xs={9}>
+                            <Box color="textSecondary" textAlign={"left"} textOverflow="ellipsis">{d.tokens}</Box>
+                        </Grid>}
+
+                        {isNotEmpty(d.msg) && <Grid item xs={3}>
+                            <IconButton color="primary" size="small" aria-label="upload picture" component="span">
+                                <SmsIcon fontSize="inherit"/>
+                            </IconButton>
+                        </Grid>}
+                        {isNotEmpty(d.msg) && <Grid item xs={9}>
+                            <Box color="textSecondary" textAlign={"left"} component="div" textOverflow="ellipsis"
+                                 style={{maxWidth: "100px", overflow: "hidden"}}>{d.msg}</Box>
+                        </Grid>}
                     </Grid>
-                    <Typography color="textSecondary">{d.msg} {d.tokens}</Typography>
 
                 </TimelineContent>
             </TimelineItem>)}
-        </Timeline>]
+        </Timeline></Paper>]
 }
 
 const mapStateToProps = state => Object.assign(

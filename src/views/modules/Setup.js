@@ -22,7 +22,7 @@ import Backdrop from '@material-ui/core/Backdrop';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CardActions from '@material-ui/core/CardActions';
 
-function Setup({createWallet, server, onFinish}) {
+function Setup({createWallet, server, onFinish, isInit}) {
     const [page, setPage] = useState(null);
     const [loading, setLoading] = useState(false);
     const [seed, setSeed] = useState(null);
@@ -140,6 +140,11 @@ function Setup({createWallet, server, onFinish}) {
                 <Typography style={{paddingTop: 10}}>or</Typography>
                 <Button color="secondary" onClick={generateSeed}>Create new Free Ton wallet</Button>
             </Paper>
+            {!isInit && <Paper elevation={0} className={classes.paper}>
+            <Button href="#text-buttons" color="primary" onClick={()=>onFinish(null)}>
+                Cancel
+            </Button>
+            </Paper>}
         </Grid> : null,
 
         page === 'restore' ? <Paper elevation={0} className={classes.paper}>
