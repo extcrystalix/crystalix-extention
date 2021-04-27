@@ -61,7 +61,7 @@ import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 
 
-function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}) {
+function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server, onChangeWallet}) {
     const [txs, setTxs] = useState([]);
     const [msgsFrom, setMsgsFrom] = useState([]);
     const [msgsTo, setMsgsTo] = useState([]);
@@ -284,7 +284,11 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server}
             >
                 {wallets.map((w, i) => <MenuItem key={w.id}>
 
-                    <ListItemText primary={w.label ? w.label : 'Account ' + (i + 1)}/>
+                    <ListItemText primary={w.label ? w.label : 'Account ' + (i + 1)}
+                                  onClick={(e)=>{
+                        onChangeWallet(w.id)
+                                      setAnchorElNet(null)
+                    }}/>
                     <ListItemSecondaryAction>
                         <IconButton color="primary" edge="end"  aria-label="upload picture" component="div">
                             <SettingsIcon  onClick={() => {

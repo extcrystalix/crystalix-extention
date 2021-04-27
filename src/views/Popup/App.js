@@ -48,6 +48,7 @@ function App({accountTheme, theme, changeServer, server, wallets}) {
 
     const [currentAddress, setCurrentAddress] = useState(null);
     const [page, setPage] = useState(null);
+    const [walletIndex, setWalletIndex] = useState(0);
 
     const useStyles = makeStyles((theme) => ({
         root: {
@@ -164,6 +165,8 @@ function App({accountTheme, theme, changeServer, server, wallets}) {
         setAnchorElNet(null);
     };
 
+    let tryToFind = wallets.find((w)=>w.id === walletIndex)
+    let currWallet = tryToFind ? tryToFind : wallets[0]
 
     return (
         <ThemeProvider theme={darkTheme}>
@@ -205,7 +208,9 @@ function App({accountTheme, theme, changeServer, server, wallets}) {
                 {page !== 'setup' && wallets && wallets.length > 0 && <Wallet
                     toSetup={()=>setPage('setup')}
                     wallets={wallets}
-                    wallet={wallets[0]}/>}
+                    wallet={currWallet}
+                    onChangeWallet={(id)=>setWalletIndex(id)}
+                />}
                 {page === 'setup' && <Setup onFinish={() => setPage(null)}/>}
                 {page !== 'setup' && wallets.length == 0 && <Setup isInit={wallets.length === 0} onFinish={() => setPage(null)}/>}
 

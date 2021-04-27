@@ -14,7 +14,7 @@ const initialState = {
   token: false,
   name: '',
   keywords: false,
-  theme: 'light',
+  theme: 'dark',
   server: 'main.ton.dev',
   wallets: []
 };
