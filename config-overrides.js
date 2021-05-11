@@ -2,6 +2,7 @@ const paths = require('react-scripts/config/paths');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 // Export override function(s) via object
 module.exports = {
@@ -90,6 +91,13 @@ function override(config, env) {
   config.plugins = replacePlugin(config.plugins,
     (name) => /GenerateSW/i.test(name)
   );
+
+  // config.plugins.push(new CopyPlugin({
+  //   patterns: [
+  //     {from: './node_modules/ton-client-web-js/tonclient.wasm'},
+  //     {from: './node_modules/@tonclient/lib-web/tonclient.wasm', to: 'tonclient_1.5.3.wasm'},
+  //   ],
+  // }))
 
   return config;
 }

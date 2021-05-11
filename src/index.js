@@ -7,10 +7,13 @@ import storeCreatorFactory from 'reduxed-chrome-storage';
 import reducers from './reducers';
 import {TonClient} from "@tonclient/core";
 import {libWeb, libWebSetup} from "@tonclient/lib-web";
-
+// libWebSetup({
+//   binaryURL: "/tonclient_1.5.3.wasm",
+// });
 (async () => {
 
     TonClient.useBinaryLibrary(libWeb);
+
     const storeName = "s3"
     const persistedState = localStorage.getItem(storeName)
         ? JSON.parse(localStorage.getItem(storeName))

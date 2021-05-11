@@ -22,7 +22,6 @@ import ExpandMore from '@material-ui/icons/ExpandMore';
 import Adjust from '@material-ui/icons/Adjust';
 import Menu from '@material-ui/core/Menu';
 import Container from '@material-ui/core/Container';
-import MenuItem from '@material-ui/core/MenuItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import {TonClient} from "@tonclient/core";
@@ -34,13 +33,27 @@ import BottomNavigation from '@material-ui/core/BottomNavigation';
 import BottomNavigationAction from '@material-ui/core/BottomNavigationAction';
 import SettingsIcon from '@material-ui/icons/Settings';
 import WbSunnyIcon from '@material-ui/icons/WbSunny';
+import SettingsApplicationsIcon from '@material-ui/icons/SettingsApplications';
 import {
     accountAuth, accountProfile, accountLogout, accountTheme, changeServer
 } from '../../actions/account';
 
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import FormGroup from '@material-ui/core/FormGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Switch from '@material-ui/core/Switch';
+import Select from '@material-ui/core/Select';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+
 import SetcodeMultisig2 from './../../contracts/SetcodeMultisigWallet2.json';
 import SetcodeMultisig from './../../contracts/SetcodeMultisigWallet.json';
 import SafeMultisigWallet from './../../contracts/SafeMultisigWallet.json';
+import TextField from "@material-ui/core/TextField";
 
 
 function App({accountTheme, theme, changeServer, server, wallets}) {
@@ -112,8 +125,8 @@ function App({accountTheme, theme, changeServer, server, wallets}) {
     }, [])
 
     const servers = [
-        {server: "main.ton.dev", desciption: "main"},
-        {server: "net.ton.dev", desciption: "dev"}
+        {server: "main.ton.dev", description: "main", color:"green"},
+        {server: "net.ton.dev", description: "dev", color:"red"}
     ]
 
     const classes = useStyles();
@@ -168,6 +181,17 @@ function App({accountTheme, theme, changeServer, server, wallets}) {
     let tryToFind = wallets.find((w)=>w.id === walletIndex)
     let currWallet = tryToFind ? tryToFind : wallets[0]
 
+    const [openSettings, setOpenSettings] = React.useState(false);
+    const handleClickOpenSettings = () => {
+        setOpenSettings(true);
+    };
+
+    const handleCloseSettings = () => {
+        setOpenSettings(false);
+    };
+
+    const iconColor = servers.find(s=>s.server === server).color
+
     return (
         <ThemeProvider theme={darkTheme}>
             <CssBaseline/>
@@ -177,8 +201,12 @@ function App({accountTheme, theme, changeServer, server, wallets}) {
 
                         <Avatar alt="Crystalix" src={logo}/>
                         <Typography variant="h6" noWrap className={classes.title}>
-                            <Chip label={server} clickable deleteIcon={<ExpandMore/>} onClick={handleClickNet}
-                                  onDelete={handleClickNet} color="primary"/>
+                            <Chip label={server} clickable
+                                  icon={<Adjust  style={{ color: iconColor }}/>}
+                                  deleteIcon={<ExpandMore/>}
+                                  onClick={handleClickNet}
+                                  onDelete={handleClickNet} color="primary">
+                            </Chip>
                             <Menu
                                 id="simple-menu"
                                 anchorEl={anchorElNet}
@@ -186,16 +214,18 @@ function App({accountTheme, theme, changeServer, server, wallets}) {
                                 onClose={handleCloseNet}
                                 varian={'menu'}
                             >
-                                {servers.map((net) => <MenuItem key={net.server} onClick={() => {
+                                {servers.map((net) => <MenuItem
+                                    key={net.server}
+                                    style={{}}
+                                    onClick={() => {
                                     handleCloseNet()
                                     changeServer(net.server)
                                 }
                                 }>
                                     <ListItemIcon className={classes.itemIcon}>
-                                        <Adjust fontSize="small"/>
-
+                                        <Adjust fontSize="small" style={{ color: net.color }}/>
                                     </ListItemIcon>
-                                    <ListItemText primary={net.server + ' [' + net.desciption + ']'}/>
+                                    <ListItemText primary={net.server + ' [' + net.description + ']'}/>
                                 </MenuItem>)}
 
                             </Menu>
@@ -211,7 +241,7 @@ function App({accountTheme, theme, changeServer, server, wallets}) {
                     wallet={currWallet}
                     onChangeWallet={(id)=>setWalletIndex(id)}
                 />}
-                {page === 'setup' && <Setup onFinish={() => setPage(null)}/>}
+                {page === 'setup' && <Setup  isInit={wallets.length === 0} onFinish={() => setPage(null)}/>}
                 {page !== 'setup' && wallets.length == 0 && <Setup isInit={wallets.length === 0} onFinish={() => setPage(null)}/>}
 
                 {/*<Button variant="contained" color="primary" onClick={() => handleThemeChange()}>*/}
@@ -219,9 +249,48 @@ function App({accountTheme, theme, changeServer, server, wallets}) {
                 {/*</Button>*/}
 
                 <BottomNavigation>
-                    <BottomNavigationAction label="Nearby" icon={<WbSunnyIcon />} onClick={handleThemeChange} />
+                    <BottomNavigationAction label="Settings" icon={<SettingsApplicationsIcon />} onClick={handleClickOpenSettings} />
                 </BottomNavigation>
 
+                <Dialog open={openSettings} onClose={handleCloseSettings} aria-labelledby="form-dialog-title">
+                    <DialogTitle id="form-dialog-title">Wallet settings</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>
+                            <FormGroup>
+                                <FormControlLabel
+                                    labelPlacement={'start'}
+                                    control={
+                                        <Switch
+                                            checked={ darkState }
+                                            onChange={ handleThemeChange }
+                                            name="checkedB"
+                                            color="primary"
+                                        />
+                                    }
+                                    label="Dark theme:"
+                                />
+                                <FormControlLabel
+                                    labelPlacement={'start'}
+                                    control={
+                                        <Select
+                                            value={"en"}
+                                        >
+                                            <MenuItem value={'en'}>EN</MenuItem>
+                                            <MenuItem value={'ru'}>RU</MenuItem>
+                                        </Select>
+                                    }
+                                    label="Language:"
+                                />
+                            </FormGroup>
+                        </DialogContentText>
+
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseSettings} color="primary">
+                            Close
+                        </Button>
+                    </DialogActions>
+                </Dialog>
             </Container>
 
         </ThemeProvider>
