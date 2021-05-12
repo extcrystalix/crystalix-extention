@@ -33,6 +33,7 @@ Set developer mode on this page:
 <img src="docs/developmode.png" title="developmode"/>
 
 Press to unpacked extension:
+
 <img src="docs/load.png" title="load unpacked extenstion"/>
 
 And choose folder crystalix-extention/build
