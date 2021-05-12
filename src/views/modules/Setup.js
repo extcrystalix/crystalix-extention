@@ -147,7 +147,7 @@ function Setup({createWallet, server, onFinish, isInit}) {
                 var server = TonSdk.client(server)
                 TonSdk.getKeysBySeed(server, phrase).then((keys)=>{
                     TonSdk.deployContract(server, keys,'SafeMultisigWallet').then(res=>{
-                        createWalletOnReduxe(phrase, 'SetcodeMultisig')
+                        createWalletOnReduxe(phrase, 'SafeMultisigWallet')
                     })
                 })
         }else{

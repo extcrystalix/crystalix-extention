@@ -138,6 +138,7 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server,
             pointerEvents: 'none',
         },
     }));
+
     const convert = (amountNano, decimalNum) => {
         const minDecimalNum = 3;
         const amountBigInt = amountNano;
@@ -153,6 +154,7 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server,
         const integerFormatted = parseInt(integer.toLocaleString());
         return `${integerFormatted}.${decimalResult}`;
     }
+
     useEffect(async () => {
         refresh()
     }, [server, wallet])
@@ -184,7 +186,15 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server,
 
     const send = (to, amount, comment) => {
         const client = TonSdk.client(server)
-        TonSdk.send(client, wallet.keys, to, amount, comment, TonSdk.deployContract)
+        setSendLoader(true)
+        TonSdk.send(client, wallet.keys, to, amount, comment, wallet.contract, wallet.addr).then((e)=>{
+            handleCloseSend()
+            refresh()
+            setSendLoader(false)
+        }).catch(e=>{
+            setSendLoader(false)
+            debugger
+        })
     }
 
     const [anchorEl, setAnchorEl] = React.useState(null);
@@ -217,6 +227,7 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server,
     const [openSettings, setOpenSettings] = React.useState(false);
     const [openAddress, setOpenAddress] = React.useState(false);
     const [openSend, setOpenSend] = React.useState(false);
+    const [sendLoader, setSendLoader] = React.useState(false);
     const [sendAddr, setSendAddr] = React.useState('');
     const [sendComment, setSendComment] = React.useState('');
     const [sendAmount, setSendAmount] = React.useState('');
@@ -506,7 +517,7 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server,
             <DialogActions>
                 <Button onClick={()=>{
                     send(sendAddr, sendAmount, sendComment)
-                }} color="primary" disabled={sendAddr === '' || sendAmount === ''}>
+                }} color="primary" disabled={sendAddr === '' || sendAmount === ''|| sendLoader}>
                     Send
                 </Button>
             </DialogActions>

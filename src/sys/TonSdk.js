@@ -4,6 +4,7 @@ import {libWeb} from "@tonclient/lib-web";
 import SetcodeMultisig from './../contracts/SetcodeMultisigWallet.json';
 import SetcodeMultisig2 from './../contracts/SetcodeMultisigWallet2.json';
 import SafeMultisigWallet from "./../contracts/SafeMultisigWallet.json";
+import BigNumber from "bignumber.js";
 //https://docs.ton.dev/86757ecb2/p/33b76d-quick-start
 //SetcodeMultisig2  SetcodeMultisig SafeMultisigWallet
 //https://github.com/tonlabs/sdk-samples/blob/master/examples/query/index.js
@@ -54,6 +55,10 @@ const convert = (amountNano, decimalNum) => {
     return `${integerFormatted}.${decimalResult}`;
 }
 
+const toNano = (amount) => {
+    return new BigNumber(amount).times(10 ** 9);
+};
+
 export default {
     // client: (server) => new TonClient({
     //     network: {
@@ -71,7 +76,7 @@ export default {
                 server_address: server,
                 message_retries_count: 3,
             },
-            abi:{
+            abi: {
                 message_expiration_timeout: 30000,
             }
         }
@@ -110,14 +115,9 @@ export default {
     },
 
 
-    send: async (server, keys, addr, amount, comment, deployContract) => {
+    send: async (server, keys, to, amount, comment, contractID, address) => {
 
-
-        const address = '0:a95fa2b896d67647b2708cf30790b53b18a6880e3dfc5b54eb91d079fa08a758'
-        const recipient = '0:c6d99e4d29ee66f89253c7f48be3be1ea582799ec02672ffaa97a30459971a69'
-
-
-        const { result } = await server.net.query_collection({
+        const {result} = await server.net.query_collection({
             collection: 'accounts',
             filter: {
                 id: {
@@ -140,49 +140,46 @@ export default {
             console.log(`Balance of ${address} is too low for deploy to net.ton.dev`);
         }
 
-        const response = await server.processing.process_message({
-            send_events: false,
-            message_encode_params: {
-                abi: {
-                    type: 'Contract',
-                    value: SafeMultisigWallet.abi
-                },
-                deploy_set: {
-                    tvc: SafeMultisigWallet.imageBase64,
-                    initial_data: {}
-                },
-                call_set: {
-                    function_name: 'constructor',
-                    input: {
-                        // Multisig owners public key.
-                        // We are going to use a single key.
-                        // You can use any number of keys and custodians.
-                        // See https://docs.ton.dev/86757ecb2/p/94921e-multisignature-wallet-management-in-tonos-cli/t/242ea8
-                        owners: [`0x${keys.public}`],
-                        // Number of custodians to require for confirm transaction.
-                        // We use 0 for simplicity. Consider using 2+ for sufficient security.
-                        reqConfirms: 0
-                    }
-                },
-                signer: {
-                    type: 'Keys',
-                    keys: keys
-                },
-                processing_try_index: 1
-            }
-        }).then(e=>{
-            debugger
-        }).catch((e)=>{
-            debugger
-        })
-
-        debugger
+        const contract = contractors[contractID]
+        if (result[0].acc_type != ACCOUNT_TYPE_ACTIVE) {
+            const response = await server.processing.process_message({
+                send_events: false,
+                message_encode_params: {
+                    abi: {
+                        type: 'Contract',
+                        value: contract.abi
+                    },
+                    deploy_set: {
+                        tvc: contract.imageBase64,
+                        initial_data: {}
+                    },
+                    call_set: {
+                        function_name: 'constructor',
+                        input: {
+                            // Multisig owners public key.
+                            // We are going to use a single key.
+                            // You can use any number of keys and custodians.
+                            // See https://docs.ton.dev/86757ecb2/p/94921e-multisignature-wallet-management-in-tonos-cli/t/242ea8
+                            owners: [`0x${keys.public}`],
+                            // Number of custodians to require for confirm transaction.
+                            // We use 0 for simplicity. Consider using 2+ for sufficient security.
+                            reqConfirms: 0
+                        }
+                    },
+                    signer: {
+                        type: 'Keys',
+                        keys: keys
+                    },
+                    processing_try_index: 1
+                }
+            })
+        }
 
         const body = (await server.abi.encode_message_body({
             abi: abiContract(transferAbi),
             call_set: {
                 function_name: "transfer",
-                input:{
+                input: {
                     comment: Buffer.from('My comment').toString('hex')
                 }
             },
@@ -192,9 +189,10 @@ export default {
 
 
         // Prepare input parameter for 'submitTransaction' method of multisig wallet
+        var amountNano = toNano(amount)
         const submitTransactionParams = {
-            dest: recipient,
-            value: 1_000,
+            dest: to,
+            value: amountNano.toNumber(),
             bounce: false,
             allBalance: false,
             payload: body
@@ -209,12 +207,11 @@ export default {
             send_events: false,
             message_encode_params: {
                 address,
-                abi: abiContract(SafeMultisigWallet.abi),
+                abi: abiContract(contract.abi),
                 call_set: {
                     function_name: 'submitTransaction',
                     input: submitTransactionParams
                 },
-
                 signer: {
                     type: 'Keys',
                     keys: keys
@@ -222,14 +219,7 @@ export default {
             }
         }
         // Call `submitTransaction` function
-        const transactionInfo = await server.processing.process_message(params).then((e)=>{
-            debugger
-        }).catch((e)=>{
-            debugger
-        });
-        console.log(transactionInfo);
-        console.log("Transaction info:")
-        debugger
+        return server.processing.process_message(params)
     },
 
     balance: async (client, addr) => {
