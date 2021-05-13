@@ -66,11 +66,13 @@ import FormControl from '@material-ui/core/FormControl';
 import Input from '@material-ui/core/Input';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import { withStyles } from '@material-ui/core/styles';
+import {withStyles} from '@material-ui/core/styles';
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
 import MuiDialogContent from '@material-ui/core/DialogContent';
 import MuiDialogActions from '@material-ui/core/DialogActions';
 import CloseIcon from '@material-ui/icons/Close';
+import ReactCodeInput from "react-code-input";
+import Alert from "@material-ui/lab/Alert";
 
 function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server, onChangeWallet}) {
     const [txs, setTxs] = useState([]);
@@ -81,6 +83,9 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server,
 
     const [isSyncining, setSyncining] = useState(false);
     const [tonPrice, setTonPrice] = useState(0.5763);
+
+    const [pin, setPin] = useState('');
+    const [pinResult, setPinResult] = useState('');
 
     const useStyles = makeStyles((theme) => ({
         root: {
@@ -225,6 +230,7 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server,
     const [walletEdit, setWalletEdit] = React.useState(null);
     const [copied, setCopied] = React.useState(false);
     const [openSettings, setOpenSettings] = React.useState(false);
+    const [openPin, setOpenPin] = React.useState(false);
     const [openAddress, setOpenAddress] = React.useState(false);
     const [openSend, setOpenSend] = React.useState(false);
     const [sendLoader, setSendLoader] = React.useState(false);
@@ -240,11 +246,20 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server,
         setOpenSettings(false);
     };
 
+    const handleClickOpenPin = () => {
+        setOpenPin(true);
+    };
+
+    const handleClosePin = () => {
+        setOpenPin(false);
+    };
+
+
     const handleClickOpenAddress = () => {
         setOpenAddress(true);
     };
 
-    const handleCloseAddress= () => {
+    const handleCloseAddress = () => {
         setOpenAddress(false);
     };
 
@@ -380,7 +395,7 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server,
                 </MenuItem>)}
 
                 <MenuItem style={{justifyContent: "center"}}>
-                    <ListItemIcon edge="center" >
+                    <ListItemIcon edge="center">
                         <Fab size="small" color="secondary" aria-label="add">
                             <AddIcon onClick={toSetup}/>
                         </Fab>
@@ -390,6 +405,40 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server,
         </Toolbar>
     </AppBar>,
         <Divider/>,
+        <Dialog open={openPin} onClose={handleClosePin} aria-labelledby="form-dialog-title">
+            <DialogTitle id="form-dialog-title">
+                {pinResult === '' && <span>Pin code</span>}
+                {pinResult !== '' && <span>Please, save you seed phrase</span>}
+            </DialogTitle>
+            <DialogContent>
+                {pinResult === '' && <DialogContentText>
+                    Please, set pin code for you wallet.
+                </DialogContentText>}
+                {pinResult === '' && <ReactCodeInput type='password' fields={4} onChange={(e) => {
+                    setPin(e)
+                }}/>}
+
+                {pinResult !== '' && <Alert severity="success">{pinResult}</Alert>}
+
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => {
+                    if (pinResult !== '') {
+                        handleClosePin()
+                    } else {
+                        if (walletEdit.pin === pin) {
+                            setPinResult(walletEdit.seed)
+                        } else {
+                            setPinResult("You pin is not correct")
+                        }
+
+                    }
+
+                }} color="primary" disabled={pin.length !== 4}>
+                    Ok
+                </Button>
+            </DialogActions>
+        </Dialog>,
         <Dialog open={openSettings} onClose={handleCloseSettings} aria-labelledby="form-dialog-title">
             <DialogTitle id="form-dialog-title">Wallet settings</DialogTitle>
             <DialogContent>
@@ -423,6 +472,14 @@ function Wallet({wallet, wallets, toSetup, changeSettings, walletDelete, server,
                     handleCloseSettings()
                 }} color="secondary">
                     Delete
+                </Button>
+                <Button onClick={() => {
+                    setPin("")
+                    setPinResult("")
+                    handleCloseSettings()
+                    handleClickOpenPin()
+                }} color="secondary">
+                    Backup
                 </Button>
                 <Button onClick={handleCloseSettings} color="primary">
                     Cancel
